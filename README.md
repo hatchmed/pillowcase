@@ -76,3 +76,8 @@ Get Devices (Scan)
 ```swift
 public func getDevices(_ indefinite: Bool = false)
 ```
+
+## Additional Documentation
+[Documentation for BGXpress iOS](https://docs.silabs.com/gecko-os/1/bgxhost/framework/latest/sdk/ios/api-index)
+
+[Complete documentation for BGXpress](https://docs.silabs.com/gecko-os/1/bgx/latest/)
