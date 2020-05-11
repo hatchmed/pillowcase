@@ -9,7 +9,7 @@ public class pillowcase: NSObject {
     
     public weak var delegate: pillowcaseDelegate?
     var bgxScanner: BGXpressScanner = BGXpressScanner()
-    var selectedDevice: BGXDevice? = nil
+    public var selectedDevice: BGXDevice? = nil
     var savedDeviceUUID: String?
     var bluetoothReady: Bool = false
     var isScanning: Bool = false
@@ -19,6 +19,7 @@ public class pillowcase: NSObject {
     var scanIndefinitely: Bool = true
     var isUpdating: Bool = false
     var updateStepIndex = 0
+    var shouldCheckForUpdates: Bool = true
     let updateSteps = [
         "gfu 1 ufu_level",
         "gfu 2 ufu_level",
@@ -68,10 +69,11 @@ public class pillowcase: NSObject {
         - forceReset: resets device memory from previous sessions such as pillowcase UUID and previously discovered devices
         - connectToFirstAvailableDevice: allow device to connect to any available pillowcase. Primarily used for development and testing
      */
-    public func configure(forceReset: Bool = false, connectToFirstAvailableDevice: Bool = false) {
+    public func configure(forceReset: Bool = false, connectToFirstAvailableDevice: Bool = false, checkForUpdates: Bool = true) {
         if (forceReset) {
             self.reset()
         }
+        self.shouldCheckForUpdates = checkForUpdates
         self.connectToAnyDevice = connectToFirstAvailableDevice
         savedDeviceUUID = UserDefaults.standard.string(forKey: "SavedPillowcaseUUID") ?? nil
         self.scanIndefinitely = (savedDeviceUUID != nil || connectToFirstAvailableDevice)
@@ -161,6 +163,22 @@ public class pillowcase: NSObject {
         }
     }
     
+    public func changeBusMode(mode: BusMode) {
+        self.selectedDevice?.writeBusMode(mode)
+    }
+    
+    public func sendCommand(command: String) {
+        self.selectedDevice?.sendCommand(command, args: nil)
+    }
+    
+    public func sendData(data: Data) {
+        self.selectedDevice?.write(data)
+    }
+    
+    public func sendText(string: String) {
+        self.selectedDevice?.write(string)
+    }
+    
     func reset() {
         UserDefaults.standard.set(nil, forKey: "SavedPillowcaseUUID")
         selectedDevice = nil
@@ -230,7 +248,9 @@ extension pillowcase: BGXpressScanDelegate, BGXDeviceDelegate, BGXSerialDelegate
         case .Connected:
             UserDefaults.standard.set(device.identifier.uuidString, forKey: "SavedPillowcaseUUID")
             selectedDevice = device
-            self.checkForUpdates()
+            if (self.shouldCheckForUpdates) {
+                self.checkForUpdates()
+            }
         case .Disconnected:
             device.deviceDelegate = nil
             device.serialDelegate = nil
