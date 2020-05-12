@@ -168,7 +168,7 @@ public class pillowcase: NSObject {
     }
     
     public func sendCommand(command: String) {
-        self.selectedDevice?.sendCommand(command, args: nil)
+        self.selectedDevice?.sendCommand(command, args: "")
     }
     
     public func sendData(data: Data) {
@@ -295,6 +295,7 @@ extension pillowcase: BGXpressScanDelegate, BGXDeviceDelegate, BGXSerialDelegate
         default:
             currentBusMode = "UNKNOWN_MODE"
         }
+        self.delegate?.busModeChanged(newBusMode)
     }
 
     public func dataWritten(for device: BGXDevice) {
@@ -371,6 +372,9 @@ public protocol pillowcaseDelegate: AnyObject {
         - state: boolean value indicating whether the device is currently updating
      */
     func boardUpdateStateChange(_ state: Bool)
+    
+    
+    func busModeChanged(_ busMode: BusMode)
 }
 
 public enum PillowcaseError: Error {
